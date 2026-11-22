@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SneakPing · size-specific restock alerts</title>
+<link rel="manifest" href="/manifest.webmanifest"><meta name="theme-color" content="#0b0614">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+:root{--bg:#0b0614;--card:#150b26;--pink:#ff2e97;--cyan:#00f0ff;--yel:#fff200;--vio:#7a2cff;--tx:#efe9ff;--dim:#9a8dbb;--ok:#39ff88;--bad:#ff4d6d}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.5 'Space Mono',monospace;min-height:100vh;overflow-x:hidden}
+body::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:50;background:repeating-linear-gradient(transparent 0 2px,rgba(0,0,0,.16) 2px 3px)}
+.reduce *,.reduce body::after{animation:none!important}.reduce body::after{display:none}
+@media(prefers-reduced-motion:reduce){*{animation:none!important}}
+.wrap{max-width:860px;margin:0 auto;padding:16px}
+header{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;padding:8px 0 4px}
+.logo{font:800 26px Orbitron,sans-serif;color:var(--pink);text-shadow:0 0 8px var(--pink),0 0 22px var(--pink);letter-spacing:2px;animation:fl 5s infinite}
+.logo b{color:var(--cyan);text-shadow:0 0 8px var(--cyan),0 0 22px var(--cyan)}
+@keyframes fl{0%,92%,100%{opacity:1}93%{opacity:.5}95%{opacity:1}97%{opacity:.6}}
+nav{display:flex;gap:6px;flex-wrap:wrap}
+nav button,.btn{font:700 13px Orbitron,sans-serif;letter-spacing:1px;text-transform:uppercase;border:1px solid var(--vio);background:transparent;color:var(--tx);padding:9px 14px;cursor:pointer;border-radius:4px}
+nav button.on,nav button:hover{border-color:var(--cyan);color:var(--cyan);box-shadow:0 0 12px rgba(0,240,255,.5)}
+.btn{background:var(--pink);border-color:var(--pink);color:#fff;box-shadow:0 0 14px rgba(255,46,151,.6)}
+.btn:hover{filter:brightness(1.15)}.btn.c{background:var(--cyan);border-color:var(--cyan);color:#06121a;box-shadow:0 0 14px rgba(0,240,255,.5)}
+.btn.g{background:transparent;color:var(--dim);border-color:var(--vio);box-shadow:none}.btn.sm{padding:6px 10px;font-size:11px}.btn:disabled{opacity:.5}
+h1,h2,h3{font-family:Orbitron,sans-serif;margin:.4em 0}h2{color:var(--cyan);text-shadow:0 0 10px rgba(0,240,255,.6)}
+.hero{text-align:center;padding:26px 0 8px}.hero h1{font-size:clamp(24px,6vw,40px);text-shadow:0 0 14px var(--vio)}.hero p{color:var(--dim);max-width:560px;margin:8px auto}
+.hero em{color:var(--yel);font-style:normal;text-shadow:0 0 10px rgba(255,242,0,.6)}
+.card{background:rgba(21,11,38,.92);border:1px solid var(--vio);border-radius:8px;padding:16px;margin:14px 0;box-shadow:0 0 18px rgba(122,44,255,.35)}
+input[type=text],input[type=number],input[type=url]{width:100%;background:#0b0614;border:1px solid var(--vio);color:var(--tx);padding:11px;border-radius:4px;font:inherit}
+input:focus{outline:none;border-color:var(--cyan);box-shadow:0 0 10px rgba(0,240,255,.5)}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.row>input{flex:1;min-width:200px}
+label{display:block;color:var(--dim);font-size:12px;text-transform:uppercase;letter-spacing:1px;margin:12px 0 5px}
+.chips{display:flex;gap:6px;flex-wrap:wrap}.chip{border:1px solid var(--vio);padding:6px 11px;border-radius:4px;cursor:pointer;background:transparent;color:var(--tx);font:inherit}
+.chip.on{border-color:var(--pink);color:#fff;background:rgba(255,46,151,.25);box-shadow:0 0 10px rgba(255,46,151,.6)}.chip.oos{opacity:.5;text-decoration:line-through}.chip.in{border-color:var(--ok)}
+.prod{display:flex;gap:14px;align-items:center}.prod img{width:84px;height:84px;object-fit:cover;border-radius:6px;border:1px solid var(--vio)}
+.ph{width:84px;height:84px;display:grid;place-items:center;font-size:34px;border:1px dashed var(--vio);border-radius:6px}
+.price{font:800 24px Orbitron,sans-serif;color:var(--yel);text-shadow:0 0 10px rgba(255,242,0,.5)}
+.b{font:700 10px Orbitron,sans-serif;letter-spacing:1px;padding:3px 8px;border-radius:3px;border:1px solid;text-transform:uppercase}
+.b.active{color:var(--ok);border-color:var(--ok);animation:bl 1.4s infinite}.b.locked{color:var(--yel);border-color:var(--yel)}.b.paused{color:var(--dim);border-color:var(--dim)}.b.expired{color:var(--bad);border-color:var(--bad)}.b.pend{color:var(--cyan);border-color:var(--cyan)}
+@keyframes bl{50%{opacity:.4}}
+.wcard{cursor:pointer;display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap}.wcard:hover{border-color:var(--cyan)}
+.dim{color:var(--dim)}.small{font-size:12px}.err{color:var(--bad)}.ok{color:var(--ok)}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(125px,1fr));gap:8px}
+.stat{border:1px solid var(--vio);padding:10px;border-radius:6px;background:#0f0720}.stat span{display:block;color:var(--dim);font-size:10px;text-transform:uppercase;letter-spacing:1px}.stat b{font:700 17px Orbitron,sans-serif}
+.gauge{height:14px;border-radius:7px;background:linear-gradient(90deg,var(--bad),var(--yel),var(--ok));position:relative;margin:10px 0 4px}.gauge i{position:absolute;top:-5px;width:4px;height:24px;background:#fff;box-shadow:0 0 8px #fff;transform:translateX(-2px)}
+.verdict{font:800 22px Orbitron,sans-serif}svg{width:100%;height:auto;display:block}
+.strip{display:flex;height:18px;border:1px solid var(--vio);border-radius:4px;overflow:hidden}.strip i{display:block;height:100%}
+.view{display:none}.view.on{display:block}
+.modal{position:fixed;inset:0;background:rgba(5,2,12,.85);display:none;place-items:center;z-index:60;padding:14px}.modal.on{display:grid}.modal .card{max-width:420px;width:100%;margin:0}
+#qr{background:#fff;padding:8px;display:inline-block;border-radius:6px}
+#toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:var(--card);border:1px solid var(--cyan);color:var(--tx);padding:10px 16px;border-radius:6px;z-index:70;display:none;box-shadow:0 0 16px rgba(0,240,255,.5);max-width:92vw}
+a{color:var(--cyan)}footer{text-align:center;color:var(--dim);font-size:12px;padding:24px 0 60px}
+
+/* ===== neon scene: static layers + 2 tiny compositor-only animations (cheap to render) ===== */
+#bg{position:fixed;inset:0;z-index:-1;pointer-events:none;overflow:hidden;background:radial-gradient(60vmax 40vmax at 10% 6%,rgba(255,46,151,.26),transparent 70%),radial-gradient(50vmax 40vmax at 94% 18%,rgba(0,240,255,.16),transparent 70%),linear-gradient(#07030f 0%,#16062e 38%,#3b0a55 62%,#ff2e97 68%,#1a0636 68.1%,#0b0614 100%)}
+#bg>*{position:absolute;display:block}
+.stars{inset:0 0 35% 0;background-image:radial-gradient(1.5px 1.5px at 20px 30px,#fff,transparent),radial-gradient(1px 1px at 90px 80px,#9ff,transparent),radial-gradient(1.5px 1.5px at 160px 20px,#f9c,transparent),radial-gradient(1px 1px at 230px 110px,#fff,transparent),radial-gradient(1px 1px at 60px 120px,#fff,transparent);background-size:260px 140px;animation:tw 6s ease-in-out infinite alternate}
+@keyframes tw{from{opacity:.4}to{opacity:1}}
+.sun{left:50%;top:68%;width:min(52vw,420px);aspect-ratio:1;transform:translate(-50%,-70%);border-radius:50%;background:linear-gradient(#fff200 8%,#ff9f1c 32%,#ff2e97 62%,#7a2cff);-webkit-mask-image:linear-gradient(#000 0 50%,transparent 50% 53%,#000 53% 60%,transparent 60% 64%,#000 64% 70%,transparent 70% 75%,#000 75% 80%,transparent 80% 86%,#000 86%);mask-image:linear-gradient(#000 0 50%,transparent 50% 53%,#000 53% 60%,transparent 60% 64%,#000 64% 70%,transparent 70% 75%,#000 75% 80%,transparent 80% 86%,#000 86%);opacity:.92}
+.ground{left:0;right:0;top:68%;bottom:0;background:linear-gradient(#2a0a4a,#0b0614 70%)}
+.floor{left:0;right:0;top:68%;width:100%;height:32%}
+.hl{left:0;right:0;top:calc(68% - 1px);height:2px;background:var(--cyan);box-shadow:0 0 12px 2px rgba(0,240,255,.8)}
+.sweep{left:0;right:0;top:68%;height:3px;background:linear-gradient(90deg,transparent,rgba(255,242,0,.85),transparent);opacity:0;animation:sw 5s ease-in infinite;will-change:transform,opacity}
+@keyframes sw{0%{transform:translateY(0);opacity:0}15%{opacity:.8}100%{transform:translateY(32vh);opacity:0}}
+.lrow{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:8px 10px;margin:6px 0;border:1px solid var(--vio);border-radius:6px;background:rgba(15,7,32,.6);cursor:pointer;text-transform:none;color:var(--tx);letter-spacing:0;font-size:14px}
+.lrow input{width:auto}.lrow:hover{border-color:var(--cyan)}
+.hero p,footer,.dim{text-shadow:0 0 6px #07030f,0 0 14px #07030f}.hero p{color:#c9bde6}
+</style></head><body>
+<div id="bg"><i class="stars"></i><i class="sun"></i><i class="ground"></i><svg class="floor" viewBox="0 0 100 32" preserveAspectRatio="none"></svg><i class="sweep"></i><i class="hl"></i></div>
+<div class="wrap">
+<header><div class="logo">SNEAK<b>PING</b></div>
+<nav><button data-v="add" class="on">+ Watch</button><button data-v="list">My Watches</button><button data-v="ch">Alerts</button></nav></header>
+
+<section id="v-add" class="view on">
+ <div class="hero"><h1>Your size. Your price. <em>Instant ping.</em></h1><p>Paste any product link. We watch it and message you the second your size is back or the price drops. <em>First alert free.</em></p></div>
+ <div class="card"><label style="margin-top:0">Product link</label>
+  <div class="row"><input id="url" type="url" placeholder="https://www.myntra.com/..."><button class="btn" id="scan">Scan</button></div>
+  <div class="small dim" style="margin-top:8px">Not sure? <a href="#" id="demo">try the demo shoe</a> (simulated prices, so you can see how everything works).</div>
+  <div id="scanerr" class="err small"></div></div>
+ <div id="found"></div>
+</section>
+
+<section id="v-list" class="view"><h2>My Watches</h2><div id="wl"></div></section>
+<section id="v-detail" class="view"></section>
+
+<section id="v-ch" class="view"><h2>Alert channels</h2>
+ <div class="card"><h3>Web push</h3><p class="dim small">Alerts pop up on this phone/laptop. iPhone: tap Share → Add to Home Screen first, then open SneakPing from the home screen.</p><span id="pst"></span> <button class="btn c sm" id="enp">Enable push</button></div>
+ <div class="card"><h3>Telegram <span class="dim small">(optional)</span></h3><p class="dim small">Alerts only, sent by our bot. Your phone number is never shared with us or anyone.</p><span id="tst"></span> <button class="btn c sm" id="ctg">Connect Telegram</button> <button class="btn g sm" id="utg" style="display:none">Unlink</button></div>
+ <div class="card"><button class="btn sm" id="tst2">Send test alert</button>
+  <h3 style="margin-top:18px">Your account</h3><p class="dim small">No password. This device holds your account. Save the recovery link to open your watches on another device.</p><button class="btn g sm" id="rec">Copy recovery link</button> <button class="btn g sm" id="fx">Toggle glow/scanlines</button></div>
+</section>
+
+<section id="v-admin" class="view"><h2>Admin</h2><div class="card"><div class="row"><input id="akey" type="text" placeholder="Admin key"><button class="btn sm" id="aload">Load payments</button></div><div id="alist"></div><label>Debug a product link</label><div class="row"><input id="dbgurl" type="text" placeholder="https://..."><button class="btn c sm" id="dbg">Debug</button></div><pre id="dbgout" class="small" style="white-space:pre-wrap;word-break:break-all"></pre></div></section>
+<footer>SneakPing · alerts are fast but can't guarantee stock · prices tracked from the moment you start watching</footer>
+</div>
+
+<div class="modal" id="pm"><div class="card" style="text-align:center"><h3>Keep watching · ₹49 / 30 days</h3>
+ <p class="dim small">Pay ₹49 to <b id="upi"></b> by any UPI app, then enter the transaction ID (UTR).</p>
+ <div id="qr"></div><p><a id="upilink" class="btn c sm" href="#">Open UPI app</a></p>
+ <input id="utr" type="text" placeholder="UPI transaction ID (UTR)"><p class="small dim">We verify manually; it usually takes a few hours.</p>
+ <button class="btn" id="paysub">I've paid</button> <button class="btn g" id="payx">Close</button></div></div>
+<div id="toast"></div>
+
+<script>
+let KEY=localStorage.getItem('sp_key'),CFG={},ME={},SCAN=null,SIZE='ANY',CUR=null;
+const $=s=>document.querySelector(s),esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])),inr=n=>'₹'+Math.round(n).toLocaleString('en-IN');
+const norm=s=>String(s).toLowerCase().replace(/uk|us|eu|size|[^a-z0-9.]/g,'');
+const toast=t=>{const e=$('#toast');e.textContent=t;e.style.display='block';clearTimeout(toast.t);toast.t=setTimeout(()=>e.style.display='none',4500)};
+async function api(p,body){const r=await fetch('/api/'+p,{method:body?'POST':'GET',headers:{'content-type':'application/json','x-key':KEY||''},body:body&&JSON.stringify(body)});const j=await r.json().catch(()=>({}));if(r.status===401&&p!=='admin'){localStorage.removeItem('sp_key');KEY=null;location.reload()}if(!r.ok)throw new Error(j.error||'Error '+r.status);return j}
+function show(v){document.querySelectorAll('.view').forEach(e=>e.classList.toggle('on',e.id==='v-'+v));document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.v===v));if(v==='list')loadList();if(v==='ch')loadCh()}
+document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>show(b.dataset.v));
+
+// ----- add flow -----
+const hostOf=u=>{if(/^demo/.test(u))return'demo-store-'+(u.slice(4)||'1');try{return new URL(u).hostname.replace(/^www\./,'')}catch{return u}};
+let LIST=[];
+$('#demo').onclick=e=>{e.preventDefault();$('#url').value='demo';scan()};$('#scan').onclick=scan;
+async function scan(){$('#scanerr').textContent='';$('#found').innerHTML='';const b=$('#scan');b.disabled=true;b.textContent='Scanning…';
+ try{SCAN=await api('inspect',{url:$('#url').value});SIZE='ANY';LIST=[{...SCAN,host:hostOf(SCAN.url),on:true,match:'you'}];drawFound()}catch(e){$('#scanerr').textContent=e.message+' You can try another link.'}b.disabled=false;b.textContent='Scan'}
+const MB={you:['YOUR LINK','active'],code:['SAME CODE ✓','active'],likely:['LIKELY MATCH','pend'],check:['CHECK COLOUR','locked'],manual:['ADDED BY YOU','pend']};
+function drawFound(){const s=SCAN;$('#found').innerHTML=`<div class="card"><div class="prod">${s.image?`<img src="${esc(s.image)}" alt="">`:'<div class="ph">👟</div>'}<div><b>${esc(s.name)}</b><div class="small dim">One shoe, watched across retailers</div></div></div>
+ <label>Retailers to watch</label><div id="lst"></div>
+ <div class="row" style="margin-top:8px">${CFG.disc||/^demo/.test(s.url)?'<button class="btn c sm" id="disc">✦ Find other retailers</button>':''}<input id="more" type="url" placeholder="or paste another retailer link for this shoe"><button class="btn g sm" id="addl">Add</button></div>
+ <label>Size</label><div class="chips" id="chips"></div><div id="sznote" class="small dim"></div>
+ <label>Alert me when price is at or below (optional)</label><input id="max" type="number" placeholder="e.g. ${Math.round(s.price*.9/50)*50}">
+ <label>Send alerts via</label><div class="row"><label style="margin:0"><input type="checkbox" id="cpush" checked> Web push</label><label style="margin:0"><input type="checkbox" id="ctg2"> Telegram</label></div>
+ <p><button class="btn" id="go">Start watch · first alert free</button></p></div>`;
+ drawLst();drawChips();
+ $('#chips').onclick=e=>{const c=e.target.closest('.chip');if(!c)return;SIZE=c.dataset.s;document.querySelectorAll('#chips .chip').forEach(x=>x.classList.toggle('on',x===c))};
+ $('#lst').onchange=e=>{const i=e.target.dataset.i;if(i!==undefined)LIST[i].on=e.target.checked};
+ if($('#disc'))$('#disc').onclick=discover;$('#addl').onclick=addLink;$('#go').onclick=create}
+function drawLst(){$('#lst').innerHTML=LIST.map((x,i)=>{const m=MB[x.match]||['CHECK','locked'];return`<label class="lrow"><input type="checkbox" data-i="${i}" ${x.on?'checked':''}><b>${esc(x.host)}</b><span class="price" style="font-size:16px">${inr(x.price)}</span><span class="small ${x.inStock===false?'err':'ok'}">${x.inStock===false?'out of stock':x.inStock?'in stock':'?'}</span><span class="b ${m[1]}">${m[0]}</span></label>`}).join('')}
+function drawChips(){const m=new Map();LIST.forEach(x=>x.sizes.forEach(z=>m.set(z.label,m.get(z.label)||z.available)));
+ const ss=[...m].sort((a,b)=>parseFloat(a[0].replace(/[^\d.]/g,''))-parseFloat(b[0].replace(/[^\d.]/g,'')));
+ $('#chips').innerHTML=`<button class="chip ${SIZE==='ANY'?'on':''}" data-s="ANY">Any size</button>`+ss.map(([l,a])=>`<button class="chip ${a?'in':'oos'} ${SIZE===l?'on':''}" data-s="${esc(l)}">${esc(l)}</button>`).join('');
+ $('#sznote').textContent=ss.length?'Green = in stock somewhere now. Sizes are matched by number (UK 9 = 9), so make sure all retailers use the same size system.':'No sizes detected, so we\'ll watch overall availability and price.';
+ if(LIST.some(x=>x.sizeSource==='html-guess')&&!$('#guess'))$('#sznote').insertAdjacentHTML('afterend','<div id="guess" class="small err">Some sizes were guessed from the page layout. Please check them against the site.</div>')}
+async function discover(){const b=$('#disc');b.disabled=true;b.textContent='Searching…';
+ try{const {results}=await api('discover',{url:SCAN.url});let n=0;results.forEach(r=>{if(!LIST.some(x=>x.url===r.url)){LIST.push({...r,on:r.match==='code'||r.match==='likely'});n++}});drawLst();drawChips();toast(n?`Found ${n} more listing${n>1?'s':''}. Untick any that look wrong.`:'No other readable retailers found.')}catch(e){toast(e.message)}b.disabled=false;b.textContent='✦ Find other retailers'}
+async function addLink(){const u=$('#more').value.trim();if(!u)return;try{const s=await api('inspect',{url:u});if(!LIST.some(x=>x.url===s.url)){LIST.push({...s,host:hostOf(s.url),on:true,match:'manual'});drawLst();drawChips()}$('#more').value=''}catch(e){toast(e.message)}}
+async function create(){const b=$('#go'),links=LIST.filter(x=>x.on).map(x=>x.url);if(!links.length){toast('Tick at least one retailer.');return}b.disabled=true;
+ try{ME=await api('me');const ch={push:$('#cpush').checked,tg:$('#ctg2').checked};
+  if(ch.push&&!ME.push)await enablePush().catch(e=>{toast(e.message);ch.push=false});
+  if(ch.tg&&!ME.tg)toast('Connect Telegram in the Alerts tab to receive alerts there.');
+  if(!ch.push&&!ch.tg&&!ME.push&&!ME.tg){toast('Pick at least one channel you can receive on.');b.disabled=false;return}
+  const r=await api('watch/new',{links,size:SIZE,max:$('#max').value,ch});
+  toast(r.alreadyOk?'Already available at your price somewhere. Buy now! We\'ll ping you on the next restock/drop.':`Watching ${r.listings} retailer${r.listings>1?'s':''} 🔥`);openWatch(r.id)}catch(e){toast(e.message);b.disabled=false}}
+
+// ----- channels -----
+const u8=b=>{const p='='.repeat((4-b.length%4)%4),r=atob((b+p).replace(/-/g,'+').replace(/_/g,'/'));return Uint8Array.from([...r].map(c=>c.charCodeAt(0)))};
+async function enablePush(){if(!CFG.vapid)throw Error('Push is not configured on the server yet.');if(!('serviceWorker'in navigator)||!('PushManager'in window))throw Error('Push not supported here. On iPhone: Share → Add to Home Screen, then open from there.');
+ const reg=await navigator.serviceWorker.register('/sw.js');if(await Notification.requestPermission()!=='granted')throw Error('Notification permission was denied.');
+ const sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:u8(CFG.vapid)});await api('channel',{push:sub.toJSON()});ME.push=true}
+async function loadCh(){ME=await api('me');$('#pst').innerHTML=ME.push?'<span class="ok">● connected</span>':'<span class="dim">○ not enabled</span>';$('#tst').innerHTML=ME.tg?'<span class="ok">● connected</span>':'<span class="dim">○ not connected</span>';$('#utg').style.display=ME.tg?'':'none';$('#ctg').style.display=CFG.bot?'':'none'}
+$('#enp').onclick=()=>enablePush().then(()=>{toast('Push enabled ✅');loadCh()}).catch(e=>toast(e.message));
+$('#ctg').onclick=async()=>{const {code}=await api('tgcode',{});window.open('https://t.me/'+CFG.bot+'?start='+code,'_blank');toast('Tap START in Telegram. Waiting…');let n=0;const t=setInterval(async()=>{ME=await api('me');if(ME.tg||++n>25){clearInterval(t);if(ME.tg)toast('Telegram linked ✅');loadCh()}},3000)};
+$('#utg').onclick=async()=>{await api('channel',{unlinkTg:true});loadCh()};
+$('#tst2').onclick=async()=>{const r=await api('test',{});toast(r.sent.length?'Sent via '+r.sent.join(' + '):'Nothing sent. Connect a channel first.')};
+$('#rec').onclick=()=>{navigator.clipboard.writeText(location.origin+'/#k='+KEY).then(()=>toast('Recovery link copied. Keep it private.'))};
+$('#fx').onclick=()=>document.documentElement.classList.toggle('reduce');
+
+// ----- list -----
+async function loadList(){const {watches}=await api('watches');$('#wl').innerHTML=watches.length?watches.map(w=>{const ps=w.ls.map(l=>l.last&&l.last.p).filter(Boolean),er=w.ls.find(l=>l.err);return`<div class="card wcard" data-id="${w.id}"><div><b>${esc(w.name)}</b><div class="small dim">Size ${esc(w.size)} · ${w.max?'target ≤ '+inr(w.max):'any restock'} · ${w.ls.length} retailer${w.ls.length==1?'':'s'} · ${w.alerts} alert${w.alerts==1?'':'s'}</div>${er?`<div class="small err">Check failing on ${esc(hostOf(er.url))}: ${esc(er.err)}</div>`:''}</div>
+ <div style="text-align:right"><div class="small dim">cheapest</div><div class="price" style="font-size:18px">${ps.length?inr(Math.min(...ps)):'–'}</div>${badge(w)}</div></div>`}).join(''):'<div class="card dim">No watches yet. Add one from the + Watch tab.</div>';
+ document.querySelectorAll('.wcard').forEach(c=>c.onclick=()=>openWatch(c.dataset.id))}
+const badge=w=>w.payPending?'<span class="b pend">Verifying payment</span>':`<span class="b ${w.status}">${w.status==='active'?(w.paidUntil?'LIVE · '+Math.max(0,Math.ceil((w.paidUntil-Date.now())/864e5))+'d left':'LIVE · free alert'):w.status==='locked'?'Pay to continue':w.status}</span>`;
+
+// ----- detail + analytics -----
+const COL=['#00f0ff','#ff2e97','#fff200','#39ff88','#b46bff','#ff9f1c'];
+const av=(w,x,z)=>w.size==='ANY'?(z?x.a.length>0:x.i!==false):x.a.map(norm).includes(norm(w.size));
+function an(w,pr){const hh=pr.h,z=pr.sizes.length>0,ps=hh.map(x=>x.p),cur=pr.last.p,lo=Math.min(...ps),hi=Math.max(...ps),avg=ps.reduce((a,b)=>a+b,0)/ps.length,sd=Math.sqrt(ps.reduce((a,b)=>a+(b-avg)**2,0)/ps.length),span=pr.last.t-hh[0].t;
+ let ch=0,rs=0,up=0,pv=null;hh.forEach((x,i)=>{if(i&&x.p!==hh[i-1].p)ch++;const v=av(w,x,z);if(pv===false&&v)rs++;const nt=i<hh.length-1?hh[i+1].t:pr.last.t;if(v)up+=nt-x.t;pv=v});
+ return{cur,lo,hi,avg,vol:avg?sd/avg*100:0,ch,rs,up:span?up/span*100:(av(w,pr.last,z)?100:0),score:hi===lo?50:Math.round(100*(hi-cur)/(hi-lo)),span,thin:hh.length<6||span<864e5}}
+function chart(prods,max){const W=700,H=240,P=34,all=prods.flatMap(p=>p.h.map(x=>x.p)).concat(max?[max]:[]);let lo=Math.min(...all),hi=Math.max(...all);if(lo===hi){lo-=1;hi+=1}
+ const t0=Math.min(...prods.map(p=>p.h[0].t)),t1=Math.max(t0+1,...prods.map(p=>p.last.t)),X=t=>P+(t-t0)/(t1-t0)*(W-2*P),Y=v=>H-P-(v-lo)/(hi-lo)*(H-2*P);
+ const lines=prods.map((p,i)=>{const hh=p.h.concat(p.last.t>p.h[p.h.length-1].t?[p.last]:[]);let d='';hh.forEach((x,j)=>d+=j?`H${X(x.t).toFixed(1)}V${Y(x.p).toFixed(1)}`:`M${X(x.t).toFixed(1)} ${Y(x.p).toFixed(1)}`);d+=`H${X(t1).toFixed(1)}`;return`<path d="${d}" fill="none" stroke="${COL[i%6]}" stroke-width="2.2" style="filter:drop-shadow(0 0 5px ${COL[i%6]})"/>`}).join('');
+ const tg=max?`<line x1="${P}" x2="${W-P}" y1="${Y(max)}" y2="${Y(max)}" stroke="#fff200" stroke-dasharray="6 5"/><text x="${W-P}" y="${Y(max)-5}" fill="#fff200" font-size="11" text-anchor="end">YOUR TARGET ${inr(max)}</text>`:'';
+ return`<svg viewBox="0 0 ${W} ${H}">${lines}${tg}<text x="4" y="${Y(hi)+4}" fill="#9a8dbb" font-size="11">${inr(hi)}</text><text x="4" y="${Y(lo)+4}" fill="#9a8dbb" font-size="11">${inr(lo)}</text><text x="${P}" y="${H-8}" fill="#9a8dbb" font-size="11">${new Date(t0).toLocaleDateString('en-IN',{day:'numeric',month:'short'})}</text><text x="${W-P}" y="${H-8}" fill="#9a8dbb" font-size="11" text-anchor="end">now</text></svg>`}
+function strip(w,pr){const hh=pr.h,z=pr.sizes.length>0,t0=hh[0].t,tot=Math.max(pr.last.t-t0,1);return`<div class="strip">${hh.map((x,i)=>{const nt=i<hh.length-1?hh[i+1].t:pr.last.t;return`<i style="width:${(nt-x.t)/tot*100}%;background:${av(w,x,z)?'#39ff88':'#2a1647'}"></i>`}).join('')}</div>`}
+async function openWatch(id){CUR=id;show('detail');const v=$('#v-detail');v.innerHTML='<p class="dim">Loading…</p>';
+ try{const {w,prods}=await api('watch',{id});if(!prods.length)throw Error('No listings found for this watch.');
+ const rows=prods.map((p,i)=>({p,i,a:an(w,p),hit:av(w,p.last,p.sizes.length>0)})),pool=rows.some(r=>r.hit)?rows.filter(r=>r.hit):rows,pr=pool.reduce((m,r)=>r.a.cur<m.a.cur?r:m),a=pr.a;
+ const lo=Math.min(...rows.map(r=>r.a.lo)),hi=Math.max(...rows.map(r=>r.a.hi)),vd=a.thin?['COLLECTING DATA','var(--cyan)']:a.score>=75?['BUY ZONE','var(--ok)']:a.score>=40?['FAIR PRICE','var(--yel)']:['WAIT','var(--bad)'];
+ const gap=w.max?a.cur-w.max:null,vs=(a.cur-a.avg)/a.avg*100,locked=w.status==='locked'||w.status==='expired',img=prods.find(p=>p.image);
+ v.innerHTML=`<p><button class="btn g sm" onclick="show('list')">← Back</button></p>
+ <div class="card"><div class="prod">${img?`<img src="${esc(img.image)}" alt="">`:'<div class="ph">👟</div>'}<div><b>${esc(w.name)}</b><div class="small dim">Size ${esc(w.size)} · ${w.max?'target ≤ '+inr(w.max):'any restock'} · ${rows.length} retailer${rows.length==1?'':'s'}</div><div class="price">${inr(a.cur)}</div><div class="small dim">cheapest: ${esc(hostOf(pr.p.url))}</div>${badge(w)}</div></div>
+ ${locked?`<p style="color:var(--yel)">${w.freeUsed?'Your free alert was sent. ':''}Keep this watch running for ₹49 / 30 days.</p>`:''}
+ <div class="row">${(locked||!w.paidUntil)&&!w.payPending?'<button class="btn sm" id="pay">Pay ₹49</button>':''}${w.status==='active'?'<button class="btn g sm" id="ps">Pause</button>':w.status==='paused'?'<button class="btn g sm" id="rs">Resume</button>':''}<button class="btn g sm" id="del">Delete</button></div></div>
+ <div class="card"><div class="verdict" style="color:${vd[1]};text-shadow:0 0 12px ${vd[1]}">${vd[0]}</div><div class="small dim">Based on the cheapest retailer's price range.</div>
+ ${a.thin?'<div class="small dim">History starts when tracking began. A reliable verdict needs about a day of data.</div>':`<div class="gauge"><i style="left:${100-a.score}%"></i></div><div class="small dim" style="display:flex;justify-content:space-between"><span>near highest</span><span>near lowest</span></div>`}</div>
+ <div class="stats">${[['Cheapest now',inr(a.cur)],['Lowest (any retailer)',inr(lo)],['Highest (any)',inr(hi)],['Average',inr(a.avg)],['Vs average',(vs>0?'+':'')+vs.toFixed(1)+'%'],['To your target',gap===null?'–':gap<=0?'REACHED':inr(gap)+' away'],['Price changes',rows.reduce((n,r)=>n+r.a.ch,0)],['Volatility',a.vol.toFixed(1)+'%'],['Restocks seen',rows.reduce((n,r)=>n+r.a.rs,0)],['Size in stock',a.up.toFixed(0)+'% of time']].map(s=>`<div class="stat"><span>${s[0]}</span><b>${s[1]}</b></div>`).join('')}</div>
+ <div class="card"><h3>Price history by retailer</h3>${chart(prods,w.max)}<div class="row small">${rows.map(r=>`<span style="color:${COL[r.i%6]}">● ${esc(hostOf(r.p.url))}</span>`).join('')}</div></div>
+ ${rows.map(r=>`<div class="card"><div class="row" style="justify-content:space-between"><div><b style="color:${COL[r.i%6]}">${esc(hostOf(r.p.url))}</b> ${r===pr?'<span class="b active">CHEAPEST</span>':''}<div class="small dim">${esc(r.p.name)}</div></div><div style="text-align:right"><div class="price" style="font-size:20px">${inr(r.a.cur)}</div><span class="small ${r.hit?'ok':'err'}">${r.hit?'size in stock':'size not available'}</span></div></div>
+ <div class="small dim">Lowest seen ${inr(r.a.lo)} · ${r.a.ch} price change${r.a.ch==1?'':'s'}</div>${r.p.err?`<div class="small err">Check failing: ${esc(r.p.err)}</div>`:''}${strip(w,r.p)}<div class="small dim">Green = size available${/^demo/.test(r.p.url)?' · <span class="err">demo data is simulated</span>':''}</div>
+ <p><a class="btn c sm" href="${/^demo/.test(r.p.url)?'#':esc(r.p.url)}" target="_blank" rel="noopener">Buy / open ↗</a></p></div>`).join('')}`;
+ const q=s=>v.querySelector(s);if(q('#del'))q('#del').onclick=async()=>{if(confirm('Delete this watch?')){await api('watch/set',{id,op:'delete'});show('list')}};
+ if(q('#ps'))q('#ps').onclick=async()=>{await api('watch/set',{id,op:'pause'});openWatch(id)};
+ if(q('#rs'))q('#rs').onclick=async()=>{try{await api('watch/set',{id,op:'resume'});openWatch(id)}catch(e){toast(e.message)}};
+ if(q('#pay'))q('#pay').onclick=()=>openPay(id)}catch(e){v.innerHTML='<p class="err">'+esc(e.message)+'</p>'}}
+
+// ----- payment -----
+function openPay(id){const link=`upi://pay?pa=${encodeURIComponent(CFG.upi)}&pn=SneakPing&am=49&cu=INR&tn=${encodeURIComponent('SP-'+id)}`;
+ $('#upi').textContent=CFG.upi||'(UPI ID not set)';$('#upilink').href=link;$('#qr').innerHTML='';if(window.QRCode&&CFG.upi)new QRCode($('#qr'),{text:link,width:180,height:180});
+ $('#utr').value='';$('#pm').classList.add('on');$('#paysub').onclick=async()=>{try{await api('pay',{id,utr:$('#utr').value});$('#pm').classList.remove('on');toast('Thanks! Verifying your payment.');openWatch(id)}catch(e){toast(e.message)}}}
+$('#payx').onclick=()=>$('#pm').classList.remove('on');
+
+// ----- admin (#admin) -----
+$('#aload').onclick=async()=>{try{const {pays}=await api('admin',{akey:$('#akey').value,op:'list'});$('#alist').innerHTML=pays.length?pays.map(p=>`<div class="card"><b>${esc(p.name)}</b> · size ${esc(p.size)}<div class="small dim">UTR ${esc(p.utr)} · ${new Date(p.t).toLocaleString('en-IN')}</div><button class="btn sm" data-a="approve" data-i="${p.id}">Approve</button> <button class="btn g sm" data-a="reject" data-i="${p.id}">Reject</button></div>`).join(''):'<p class="dim">No pending payments.</p>';
+ $('#alist').querySelectorAll('button').forEach(b=>b.onclick=async()=>{await api('admin',{akey:$('#akey').value,op:b.dataset.a,id:b.dataset.i});$('#aload').click()})}catch(e){toast(e.message)}};
+
+$('#dbg').onclick=async()=>{try{const r=await api('admin',{akey:$('#akey').value,op:'debug',url:$('#dbgurl').value});$('#dbgout').textContent=JSON.stringify(r,null,1)}catch(e){toast(e.message)}};
+// perspective floor as a tiny static SVG (no 3D transforms, nothing repaints)
+(()=>{let v='',h='';for(let x=-150;x<=250;x+=10)v+=`M50 0L${x} 32`;for(let k=1;k<=14;k++)h+=`M0 ${(32*Math.pow(k/14,2.2)).toFixed(2)}H100`;
+ $('#bg .floor').innerHTML=`<path d="${v}" fill="none" stroke="rgba(0,240,255,.6)" stroke-width="1.2" vector-effect="non-scaling-stroke"/><path d="${h}" fill="none" stroke="rgba(255,46,151,.7)" stroke-width="1.2" vector-effect="non-scaling-stroke"/>`})();
+// ----- init -----
+(async()=>{if(location.hash.startsWith('#k=')){KEY=location.hash.slice(3);localStorage.setItem('sp_key',KEY);history.replaceState(null,'',location.pathname)}
+ CFG=await api('config');if(!KEY){KEY=(await api('session',{})).key;localStorage.setItem('sp_key',KEY)}
+ if(location.hash==='#admin')show('admin');if('serviceWorker'in navigator)navigator.serviceWorker.register('/sw.js').catch(()=>{})})();
+</script></body></html>

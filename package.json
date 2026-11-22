@@ -1,0 +1,1 @@
+{"name":"sneakping","version":"1.0.0","private":true,"engines":{"node":">=18"},"scripts":{"dev":"node --env-file=.env dev.js","start":"node dev.js"},"dependencies":{"web-push":"^3.6.7"}}
