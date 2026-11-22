@@ -1,4 +1,4 @@
-# SneakPing
+# KickPing
 
 Static neon front end (`public/`) + one serverless function (`api/app.js`). Storage: Upstash Redis.
 
@@ -15,7 +15,7 @@ Static neon front end (`public/`) + one serverless function (`api/app.js`). Stor
 | `CRON_SECRET` | another long random string |
 | `VAPID_PUBLIC` / `VAPID_PRIVATE` | from step 3 |
 | `VAPID_SUBJECT` | `mailto:you@example.com` |
-| `APP_URL` | your site URL, e.g. `https://sneakping.vercel.app` |
+| `APP_URL` | your site URL, e.g. `https://kickping.vercel.app` |
 | `TG_TOKEN`, `TG_BOT`, `TG_SECRET` | optional, see below |
 | `GEMINI_API_KEY` | optional: enables "Find other retailers" (Google AI Studio key). `GEMINI_MODEL` optional, defaults to `gemini-2.5-flash`; check the current model name and quotas in Google's docs |
 | `FETCH_PROXY` | optional, e.g. `https://api.scraperapi.com/?api_key=KEY&url={url}` |

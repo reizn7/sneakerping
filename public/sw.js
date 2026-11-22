@@ -1,6 +1,6 @@
 self.addEventListener('push', e => {
   const d = e.data ? e.data.json() : {};
-  e.waitUntil(self.registration.showNotification(d.title || 'SneakPing', { body: d.body || '', data: { url: d.url || '/' } }));
+  e.waitUntil(self.registration.showNotification(d.title || 'KickPing', { body: d.body || '', data: { url: d.url || '/' } }));
 });
 self.addEventListener('notificationclick', e => {
   e.notification.close();

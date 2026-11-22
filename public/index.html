@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>SneakPing · size-specific restock alerts</title>
+<title>KickPing · size-specific restock alerts</title>
 <link rel="manifest" href="/manifest.webmanifest"><meta name="theme-color" content="#0b0614">
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -68,13 +68,13 @@ a{color:var(--cyan)}footer{text-align:center;color:var(--dim);font-size:12px;pad
 </style></head><body>
 <div id="bg"><i class="stars"></i><i class="sun"></i><i class="ground"></i><svg class="floor" viewBox="0 0 100 32" preserveAspectRatio="none"></svg><i class="sweep"></i><i class="hl"></i></div>
 <div class="wrap">
-<header><div class="logo">SNEAK<b>PING</b></div>
+<header><div class="logo">KICK<b>PING</b></div>
 <nav><button data-v="add" class="on">+ Watch</button><button data-v="list">My Watches</button><button data-v="ch">Alerts</button></nav></header>
 
 <section id="v-add" class="view on">
  <div class="hero"><h1>Your size. Your price. <em>Instant ping.</em></h1><p>Paste any product link. We watch it and message you the second your size is back or the price drops. <em>First alert free.</em></p></div>
  <div class="card"><label style="margin-top:0">Product link</label>
-  <div class="row"><input id="url" type="url" placeholder="https://www.myntra.com/..."><button class="btn" id="scan">Scan</button></div>
+  <div class="row"><input id="url" type="url" placeholder="https://www.myntra.com/"><button class="btn" id="scan">Scan</button></div>
   <div class="small dim" style="margin-top:8px">Not sure? <a href="#" id="demo">try the demo shoe</a> (simulated prices, so you can see how everything works).</div>
   <div id="scanerr" class="err small"></div></div>
  <div id="found"></div>
@@ -84,14 +84,14 @@ a{color:var(--cyan)}footer{text-align:center;color:var(--dim);font-size:12px;pad
 <section id="v-detail" class="view"></section>
 
 <section id="v-ch" class="view"><h2>Alert channels</h2>
- <div class="card"><h3>Web push</h3><p class="dim small">Alerts pop up on this phone/laptop. iPhone: tap Share → Add to Home Screen first, then open SneakPing from the home screen.</p><span id="pst"></span> <button class="btn c sm" id="enp">Enable push</button></div>
+ <div class="card"><h3>Web push</h3><p class="dim small">Alerts pop up on this phone/laptop. iPhone: tap Share → Add to Home Screen first, then open KickPing from the home screen.</p><span id="pst"></span> <button class="btn c sm" id="enp">Enable push</button></div>
  <div class="card"><h3>Telegram <span class="dim small">(optional)</span></h3><p class="dim small">Alerts only, sent by our bot. Your phone number is never shared with us or anyone.</p><span id="tst"></span> <button class="btn c sm" id="ctg">Connect Telegram</button> <button class="btn g sm" id="utg" style="display:none">Unlink</button></div>
  <div class="card"><button class="btn sm" id="tst2">Send test alert</button>
   <h3 style="margin-top:18px">Your account</h3><p class="dim small">No password. This device holds your account. Save the recovery link to open your watches on another device.</p><button class="btn g sm" id="rec">Copy recovery link</button> <button class="btn g sm" id="fx">Toggle glow/scanlines</button></div>
 </section>
 
 <section id="v-admin" class="view"><h2>Admin</h2><div class="card"><div class="row"><input id="akey" type="text" placeholder="Admin key"><button class="btn sm" id="aload">Load payments</button></div><div id="alist"></div><label>Debug a product link</label><div class="row"><input id="dbgurl" type="text" placeholder="https://..."><button class="btn c sm" id="dbg">Debug</button></div><pre id="dbgout" class="small" style="white-space:pre-wrap;word-break:break-all"></pre></div></section>
-<footer>SneakPing · alerts are fast but can't guarantee stock · prices tracked from the moment you start watching</footer>
+<footer>KickPing · alerts are fast but can't guarantee stock · prices tracked from the moment you start watching</footer>
 </div>
 
 <div class="modal" id="pm"><div class="card" style="text-align:center"><h3>Keep watching · ₹49 / 30 days</h3>
@@ -198,7 +198,7 @@ async function openWatch(id){CUR=id;show('detail');const v=$('#v-detail');v.inne
  if(q('#pay'))q('#pay').onclick=()=>openPay(id)}catch(e){v.innerHTML='<p class="err">'+esc(e.message)+'</p>'}}
 
 // ----- payment -----
-function openPay(id){const link=`upi://pay?pa=${encodeURIComponent(CFG.upi)}&pn=SneakPing&am=49&cu=INR&tn=${encodeURIComponent('SP-'+id)}`;
+function openPay(id){const link=`upi://pay?pa=${encodeURIComponent(CFG.upi)}&pn=KickPing&am=49&cu=INR&tn=${encodeURIComponent('KP-'+id)}`;
  $('#upi').textContent=CFG.upi||'(UPI ID not set)';$('#upilink').href=link;$('#qr').innerHTML='';if(window.QRCode&&CFG.upi)new QRCode($('#qr'),{text:link,width:180,height:180});
  $('#utr').value='';$('#pm').classList.add('on');$('#paysub').onclick=async()=>{try{await api('pay',{id,utr:$('#utr').value});$('#pm').classList.remove('on');toast('Thanks! Verifying your payment.');openWatch(id)}catch(e){toast(e.message)}}}
 $('#payx').onclick=()=>$('#pm').classList.remove('on');

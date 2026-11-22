@@ -14,4 +14,4 @@ http.createServer(async(req,res)=>{
   const f=path.join(__dirname,'public',u.pathname==='/'?'index.html':u.pathname);
   fs.readFile(f,(e,d)=>{if(e){res.statusCode=404;return res.end('Not found')}
     res.setHeader('content-type',types[path.extname(f)]||'application/octet-stream');res.end(d)});
-}).listen(3000,()=>console.log('SneakPing running at http://localhost:3000'));
+}).listen(3000,()=>console.log('KickPing running at http://localhost:3000'));

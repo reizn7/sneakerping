@@ -1,4 +1,4 @@
-// SneakPing API — one serverless function, routed via vercel.json rewrite (/api/x -> /api/app?r=x)
+// KickPing API — one serverless function, routed via vercel.json rewrite (/api/x -> /api/app?r=x)
 const crypto = require('crypto');
 const webpush = require('web-push');
 const E = process.env;
@@ -175,8 +175,8 @@ module.exports = async (req, res) => {
       const say = t => fetch(`https://api.telegram.org/bot${E.TG_TOKEN}/sendMessage`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ chat_id: m.chat.id, text: t }) });
       if (code) {
         const aid = await get('tgc:' + code), a = aid && await get('acct:' + aid);
-        if (a) { a.tg = m.chat.id; await put('acct:' + a.id, a); await say('✅ SneakPing linked. Alerts will arrive here.'); } else await say('That link expired. Generate a new one in the app.');
-      } else if (m) await say('Open SneakPing and tap "Connect Telegram" to link this chat.');
+        if (a) { a.tg = m.chat.id; await put('acct:' + a.id, a); await say('✅ KickPing linked. Alerts will arrive here.'); } else await say('That link expired. Generate a new one in the app.');
+      } else if (m) await say('Open KickPing and tap "Connect Telegram" to link this chat.');
       return send(200, {});
     }
     if (route === 'admin') {
@@ -264,7 +264,7 @@ module.exports = async (req, res) => {
         await put('acct:' + a.id, a); return send(200, { ok: true });
       }
       case 'tgcode': { const code = crypto.randomBytes(5).toString('hex'); await put('tgc:' + code, a.id); return send(200, { code }); }
-      case 'test': return send(200, { sent: await notify(a, { push: true, tg: true }, 'SneakPing test', 'Alerts are working ✅', E.APP_URL || '') });
+      case 'test': return send(200, { sent: await notify(a, { push: true, tg: true }, 'KickPing test', 'Alerts are working ✅', E.APP_URL || '') });
       case 'pay': {
         const w = await own(body.id), utr = String(body.utr || '').replace(/\s/g, '');
         if (!w) return send(404, { error: 'Not found' }); if (!/^\w{8,24}$/.test(utr)) return send(400, { error: 'Enter the UPI transaction ID (UTR) from your payment app.' });
