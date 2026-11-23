@@ -120,7 +120,7 @@ async function scan(){$('#scanerr').textContent='';$('#found').innerHTML='';cons
 const MB={you:['YOUR LINK','active'],code:['SAME CODE ✓','active'],likely:['LIKELY MATCH','pend'],check:['CHECK COLOUR','locked'],manual:['ADDED BY YOU','pend']};
 function drawFound(){const s=SCAN;$('#found').innerHTML=`<div class="card"><div class="prod">${s.image?`<img src="${esc(s.image)}" alt="">`:'<div class="ph">👟</div>'}<div><b>${esc(s.name)}</b><div class="small dim">One shoe, watched across retailers</div></div></div>
  <label>Retailers to watch</label><div id="lst"></div>
- <div class="row" style="margin-top:8px">${CFG.disc||/^demo/.test(s.url)?'<button class="btn c sm" id="disc">✦ Find other retailers</button>':''}<input id="more" type="url" placeholder="or paste another retailer link for this shoe"><button class="btn g sm" id="addl">Add</button></div>
+ <div class="row" style="margin-top:8px"><input id="more" type="url" placeholder="Paste another retailer link for this shoe"><button class="btn g sm" id="addl">Add</button></div>
  <label>Size</label><div class="chips" id="chips"></div><div id="sznote" class="small dim"></div>
  <label>Alert me when price is at or below (optional)</label><input id="max" type="number" placeholder="e.g. ${Math.round(s.price*.9/50)*50}">
  <label>Send alerts via</label><div class="row"><label style="margin:0"><input type="checkbox" id="cpush" checked> Web push</label><label style="margin:0"><input type="checkbox" id="ctg2"> Telegram</label></div>
