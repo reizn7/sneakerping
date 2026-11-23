@@ -76,15 +76,15 @@ function record(prod, s) {
 }
 
 async function notify(a, ch, title, body, url) {
-  const out = [];
+  const out = [], errors = [];
   if (ch.push && a.push && E.VAPID_PUBLIC) {
     try { webpush.setVapidDetails(E.VAPID_SUBJECT || 'mailto:admin@example.com', E.VAPID_PUBLIC, E.VAPID_PRIVATE); await webpush.sendNotification(a.push, JSON.stringify({ title, body, url })); out.push('push'); }
-    catch (e) { if (e.statusCode === 404 || e.statusCode === 410) { a.push = null; await put('acct:' + a.id, a); } }
+    catch (e) { errors.push('push: ' + (e.statusCode ? 'HTTP ' + e.statusCode : e.message)); if (e.statusCode === 404 || e.statusCode === 410) { a.push = null; await put('acct:' + a.id, a); } }
   }
   if (ch.tg && a.tg && E.TG_TOKEN) {
-    try { await fetch(`https://api.telegram.org/bot${E.TG_TOKEN}/sendMessage`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ chat_id: a.tg, text: `${title}\n${body}\n${url}` }) }); out.push('tg'); } catch {}
+    try { await fetch(`https://api.telegram.org/bot${E.TG_TOKEN}/sendMessage`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ chat_id: a.tg, text: `${title}\n${body}\n${url}` }) }); out.push('tg'); } catch (e) { errors.push('tg: ' + e.message); }
   }
-  return out;
+  return { sent: out, errors };
 }
 
 // ---------- multi-listing logic: one watch = one shoe, several retailer links ----------
@@ -106,10 +106,10 @@ async function fire(w, best) {
   const body = `${w.size === 'ANY' ? 'In stock' : 'Size ' + w.size + ' is in stock'} at ${inr(best.snap.p)} on ${hostOf(best.link.url)}`
     + (best.n ? `\n+${best.n} other retailer${best.n > 1 ? 's' : ''} also have it` : '')
     + (free ? '\nThat was your free alert. Pay ₹49 in your dashboard to keep watching.' : '');
-  const sent = await notify(a, w.ch, '🔥 ' + w.name, body, best.link.url.startsWith('demo') ? (E.APP_URL || '') : best.link.url);
+  const result = await notify(a, w.ch, '🔥 ' + w.name, body, best.link.url.startsWith('demo') ? (E.APP_URL || '') : best.link.url);
   w.sat = true; w.alerts++; w.lastAlert = Date.now();
   if (free) { w.freeUsed = true; w.status = 'locked'; }
-  await put('watch:' + w.id, w); return sent.length;
+  await put('watch:' + w.id, w); return result.sent.length;
 }
 
 async function cron() {
@@ -264,7 +264,7 @@ module.exports = async (req, res) => {
         await put('acct:' + a.id, a); return send(200, { ok: true });
       }
       case 'tgcode': { const code = crypto.randomBytes(5).toString('hex'); await put('tgc:' + code, a.id); return send(200, { code }); }
-      case 'test': return send(200, { sent: await notify(a, { push: true, tg: true }, 'KickPing test', 'Alerts are working ✅', E.APP_URL || '') });
+      case 'test': return send(200, await notify(a, { push: true, tg: true }, 'KickPing test', 'Alerts are working ✅', E.APP_URL || ''));
       case 'pay': {
         const w = await own(body.id), utr = String(body.utr || '').replace(/\s/g, '');
         if (!w) return send(404, { error: 'Not found' }); if (!/^\w{8,24}$/.test(utr)) return send(400, { error: 'Enter the UPI transaction ID (UTR) from your payment app.' });

@@ -154,7 +154,7 @@ async function loadCh(){ME=await api('me');$('#pst').innerHTML=ME.push?'<span cl
 $('#enp').onclick=()=>enablePush().then(()=>{toast('Push enabled ✅');loadCh()}).catch(e=>toast(e.message));
 $('#ctg').onclick=async()=>{const {code}=await api('tgcode',{});window.open('https://t.me/'+CFG.bot+'?start='+code,'_blank');toast('Tap START in Telegram. Waiting…');let n=0;const t=setInterval(async()=>{ME=await api('me');if(ME.tg||++n>25){clearInterval(t);if(ME.tg)toast('Telegram linked ✅');loadCh()}},3000)};
 $('#utg').onclick=async()=>{await api('channel',{unlinkTg:true});loadCh()};
-$('#tst2').onclick=async()=>{const r=await api('test',{});toast(r.sent.length?'Sent via '+r.sent.join(' + '):'Nothing sent. Connect a channel first.')};
+$('#tst2').onclick=async()=>{try{const r=await api('test',{});toast(r.sent.length?'Sent via '+r.sent.join(' + '):r.errors&&r.errors.length?'Delivery failed: '+r.errors.join('; '):'Nothing sent. Connect a channel first.')}catch(e){toast(e.message)}};
 $('#rec').onclick=()=>{navigator.clipboard.writeText(location.origin+'/#k='+KEY).then(()=>toast('Recovery link copied. Keep it private.'))};
 $('#fx').onclick=()=>document.documentElement.classList.toggle('reduce');
 
