@@ -92,6 +92,9 @@ function parse(html) {
   image = image || meta('og:image');
   price = price || +meta('product:price:amount') || +meta('og:price:amount');
 
+  const statePrice = html.match(/"price"\s*:\s*\{\s*"mrp"\s*:\s*([0-9.]+)\s*,\s*"discounted"\s*:\s*([0-9.]+)/i);
+  if (statePrice) price = +(statePrice[2] || statePrice[1]);
+
   if (!price) {
     const pm = html.match(/(?:₹|Rs\.?)\s*([0-9][0-9,]*(?:\.[0-9]+)?)/i);
     if (pm) price = +(pm[1].replace(/,/g, ''));
